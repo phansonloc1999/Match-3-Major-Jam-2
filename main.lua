@@ -10,4 +10,6 @@ end
 
 function love.update(dt)
     board:update(dt)
+
+    love.mouse.buttonsPressed = {}
 end
