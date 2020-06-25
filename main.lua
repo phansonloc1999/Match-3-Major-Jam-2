@@ -1,11 +1,13 @@
 require("Src/Dependencies")
 
 function love.load()
+    board = Board()
 end
 
 function love.draw()
+    board:render()
 end
 
 function love.update(dt)
-    -- body
+    board:update(dt)
 end
