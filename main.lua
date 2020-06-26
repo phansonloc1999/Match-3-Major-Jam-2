@@ -6,26 +6,27 @@
 require("Src/Dependencies")
 
 function love.load()
-    -- board = Board()
-    scanLineEffect = ScanLine()
+    board = Board()
+    -- scanLineEffect = ScanLine()
 
     love.graphics.setDefaultFilter("nearest", "nearest")
 end
 
 function love.draw()
-    -- board:render()
-    love.graphics.clear(1, 1, 1)
+    board:draw()
+
+    -- love.graphics.clear(1, 1, 1)
 
     love.graphics.setColor(0, 1, 0)
     love.graphics.print("FPS: " .. love.timer.getFPS())
     love.graphics.setColor(1, 1, 1)
 
-    scanLineEffect:draw()
+    -- scanLineEffect:draw()
 end
 
 function love.update(dt)
-    -- board:update(dt)
-    scanLineEffect:update(dt)
+    board:update(dt)
+    -- scanLineEffect:update(dt)
 
     love.mouse.buttonsPressed = {}
 end
