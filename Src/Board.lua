@@ -94,5 +94,5 @@ function Board:swapElements(row1, column1, row2, column2)
 end
 
 function Board:isNeighborElements(row1, column1, row2, column2)
-    return (math.abs(row1 - row2) == 1 and column1 == column2) or (row1 == row2 and math.abs(column1 - column2))
+    return (math.abs(row1 - row2) == 1 and column1 == column2) or (row1 == row2 and math.abs(column1 - column2) == 1)
 end
