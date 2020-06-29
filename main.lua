@@ -6,10 +6,11 @@
 require("Src/Dependencies")
 
 function love.load()
+    math.randomseed(os.time())
+    love.graphics.setDefaultFilter("nearest", "nearest")
+
     board = Board()
     -- scanLineEffect = ScanLine()
-
-    love.graphics.setDefaultFilter("nearest", "nearest")
 end
 
 function love.draw()
@@ -25,6 +26,8 @@ function love.draw()
 end
 
 function love.update(dt)
+    require("Libs.lovebird").update()
+
     board:update(dt)
     -- scanLineEffect:update(dt)
 
