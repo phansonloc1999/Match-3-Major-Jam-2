@@ -204,24 +204,30 @@ function Board:removeMatches()
             end
         end
 
-        Timer.after(
-            2,
-            function()
-                for i, value in pairs(rowMatches) do
-                    for j = 1, #rowMatches[i] do
-                        for k = rowMatches[i][j].first, rowMatches[i][j].last do
-                            self.elements[i][k] = math.random(5)
-                        end
-                    end
-                end
-                for i, value in pairs(columnMatches) do
-                    for j = 1, #columnMatches[i] do
-                        for k = columnMatches[i][j].first, columnMatches[i][j].last do
-                            self.elements[k][i] = math.random(5)
-                        end
+        self:regenRemovedElements(rowMatches, columnMatches)
+    end
+end
+
+function Board:regenRemovedElements(rowMatches, columnMatches)
+    Timer.after(
+        2,
+        function()
+            for i, value in pairs(rowMatches) do
+                for j = 1, #rowMatches[i] do
+                    for k = rowMatches[i][j].first, rowMatches[i][j].last do
+                        self.elements[i][k] = math.random(5)
                     end
                 end
             end
-        )
-    end
+            for i, value in pairs(columnMatches) do
+                for j = 1, #columnMatches[i] do
+                    for k = columnMatches[i][j].first, columnMatches[i][j].last do
+                        self.elements[k][i] = math.random(5)
+                    end
+                end
+            end
+
+            Timer.clear()
+        end
+    )
 end

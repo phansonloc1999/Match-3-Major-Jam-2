@@ -10,7 +10,8 @@ function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
 
     board = Board()
-    -- scanLineEffect = ScanLine()
+
+    -- love.system.openURL("http://localhost:8080")
 end
 
 function love.draw()
