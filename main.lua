@@ -28,6 +28,8 @@ end
 function love.update(dt)
     require("Libs.lovebird").update()
 
+    Timer.update(dt)
+
     board:update(dt)
     -- scanLineEffect:update(dt)
 

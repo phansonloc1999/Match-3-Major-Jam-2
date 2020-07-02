@@ -1,4 +1,5 @@
 Class = require("Libs/class")
+Timer = require("Libs.timer")
 
 require("Src.Utils")
 require("Src.Board")

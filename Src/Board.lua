@@ -95,32 +95,10 @@ function Board:update(dt)
                         ))
                      then
                         self:swapElements(self.prevSelectedElementPos.row, self.prevSelectedElementPos.column, i, j)
+                        self:removeMatches()
                     end
                     self.prevSelectedElementPos = nil
                 end
-            end
-        end
-    end
-
-    rowMatches = {}
-    columnMatches = {}
-    for row = 1, BOARD_ROW_NUMBER do
-        table.insert(rowMatches, self:checkRowForMatches(row))
-    end
-    for column = 1, BOARD_COLUMN_NUMBER do
-        table.insert(columnMatches, self:checkColumnForMatches(column))
-    end
-    for i = 1, #rowMatches do
-        for j = 1, #rowMatches[i] do
-            for k = rowMatches[i][j].first, rowMatches[i][j].last do
-                self.elements[i][k] = 0
-            end
-        end
-    end
-    for i = 1, #columnMatches do
-        for j = 1, #columnMatches[i] do
-            for k = columnMatches[i][j].first, columnMatches[i][j].last do
-                self.elements[k][i] = 0
             end
         end
     end
@@ -176,4 +154,74 @@ function Board:checkColumnForMatches(column)
         end
     end
     return matches
+end
+
+function Board:removeMatches()
+    local rowMatches = {}
+    local columnMatches = {}
+
+    for i = 1, BOARD_ROW_NUMBER do
+        table.insert(rowMatches, self:checkRowForMatches(i))
+    end
+    for i = 1, BOARD_COLUMN_NUMBER do
+        table.insert(columnMatches, self:checkColumnForMatches(i))
+    end
+
+    local matchCount = 0
+    for i, value in pairs(rowMatches) do
+        -- print("Checking row " .. i)
+        if #rowMatches[i] > 0 then
+            matchCount = matchCount + 1
+            print("Match at row " .. i)
+        end
+    end
+    for i, value in pairs(columnMatches) do
+        -- print("Checking column " .. i)
+        if #columnMatches[i] > 0 then
+            matchCount = matchCount + 1
+            print("Match at column " .. i)
+        end
+    end
+    print("==============================")
+
+    if (matchCount > 0) then
+        for i, value in pairs(rowMatches) do
+            for j = 1, #rowMatches[i] do
+                for k = rowMatches[i][j].first, rowMatches[i][j].last do
+                    print("Element was " .. self.elements[i][k])
+                    self.elements[i][k] = 0
+                end
+                print("==============================")
+            end
+        end
+        for i, value in pairs(columnMatches) do
+            for j = 1, #columnMatches[i] do
+                for k = columnMatches[i][j].first, columnMatches[i][j].last do
+                    print("Element was " .. self.elements[k][i])
+                    self.elements[k][i] = 0
+                end
+                print("==============================")
+            end
+        end
+
+        Timer.after(
+            2,
+            function()
+                for i, value in pairs(rowMatches) do
+                    for j = 1, #rowMatches[i] do
+                        for k = rowMatches[i][j].first, rowMatches[i][j].last do
+                            self.elements[i][k] = math.random(5)
+                        end
+                    end
+                end
+                for i, value in pairs(columnMatches) do
+                    for j = 1, #columnMatches[i] do
+                        for k = columnMatches[i][j].first, columnMatches[i][j].last do
+                            self.elements[k][i] = math.random(5)
+                        end
+                    end
+                end
+            end
+        )
+    end
 end
