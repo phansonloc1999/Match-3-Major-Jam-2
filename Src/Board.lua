@@ -18,6 +18,7 @@ function Board:init()
         end
     end
 
+    --- Add an extra row to avoid indexing nil value when check last column for matches
     self.elements[BOARD_ROW_NUMBER + 1] = {}
     for i = 1, BOARD_COLUMN_NUMBER do
         table.insert(self.elements[BOARD_ROW_NUMBER + 1], 0)
@@ -35,6 +36,8 @@ function Board:init()
     end
 
     self.prevSelectedElementPos = nil
+
+    self:processMatches()
 end
 
 function Board:draw()
@@ -95,7 +98,7 @@ function Board:update(dt)
                         ))
                      then
                         self:swapElements(self.prevSelectedElementPos.row, self.prevSelectedElementPos.column, i, j)
-                        self:removeMatches()
+                        self:processMatches()
                     end
                     self.prevSelectedElementPos = nil
                 end
@@ -156,56 +159,54 @@ function Board:checkColumnForMatches(column)
     return matches
 end
 
-function Board:removeMatches()
+function Board:processMatches()
     local rowMatches = {}
     local columnMatches = {}
+    local matchCount = 0
 
     for i = 1, BOARD_ROW_NUMBER do
         table.insert(rowMatches, self:checkRowForMatches(i))
-    end
-    for i = 1, BOARD_COLUMN_NUMBER do
-        table.insert(columnMatches, self:checkColumnForMatches(i))
-    end
-
-    local matchCount = 0
-    for i, value in pairs(rowMatches) do
-        -- print("Checking row " .. i)
         if #rowMatches[i] > 0 then
             matchCount = matchCount + 1
             print("Match at row " .. i)
         end
     end
-    for i, value in pairs(columnMatches) do
-        -- print("Checking column " .. i)
+    for i = 1, BOARD_COLUMN_NUMBER do
+        table.insert(columnMatches, self:checkColumnForMatches(i))
         if #columnMatches[i] > 0 then
             matchCount = matchCount + 1
             print("Match at column " .. i)
         end
     end
-    print("==============================")
 
-    if (matchCount > 0) then
-        for i, value in pairs(rowMatches) do
-            for j = 1, #rowMatches[i] do
-                for k = rowMatches[i][j].first, rowMatches[i][j].last do
-                    print("Element was " .. self.elements[i][k])
-                    self.elements[i][k] = 0
+    Timer.after(
+        1,
+        function()
+            if (matchCount > 0) then
+                for i, value in pairs(rowMatches) do
+                    for j = 1, #rowMatches[i] do
+                        for k = rowMatches[i][j].first, rowMatches[i][j].last do
+                            print("Element was " .. self.elements[i][k])
+                            self.elements[i][k] = 0
+                        end
+                        print("==============================")
+                    end
                 end
-                print("==============================")
+                for i, value in pairs(columnMatches) do
+                    for j = 1, #columnMatches[i] do
+                        for k = columnMatches[i][j].first, columnMatches[i][j].last do
+                            print("Element was " .. self.elements[k][i])
+                            self.elements[k][i] = 0
+                        end
+                        print("==============================")
+                    end
+                end
+
+                --- Then regen
+                self:regenRemovedElements(rowMatches, columnMatches)
             end
         end
-        for i, value in pairs(columnMatches) do
-            for j = 1, #columnMatches[i] do
-                for k = columnMatches[i][j].first, columnMatches[i][j].last do
-                    print("Element was " .. self.elements[k][i])
-                    self.elements[k][i] = 0
-                end
-                print("==============================")
-            end
-        end
-
-        self:regenRemovedElements(rowMatches, columnMatches)
-    end
+    )
 end
 
 function Board:regenRemovedElements(rowMatches, columnMatches)

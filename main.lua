@@ -1,7 +1,7 @@
-package.cpath =
-    package.cpath .. ";c:/Users/COMPUTER/.vscode/extensions/tangzx.emmylua-0.3.49/debugger/emmy/windows/x64/?.dll"
-local dbg = require("emmy_core")
-dbg.tcpListen("localhost", 9966)
+-- package.cpath =
+--     package.cpath .. ";c:/Users/COMPUTER/.vscode/extensions/tangzx.emmylua-0.3.49/debugger/emmy/windows/x64/?.dll"
+-- local dbg = require("emmy_core")
+-- dbg.tcpListen("localhost", 9966)
 
 require("Src/Dependencies")
 
@@ -11,7 +11,7 @@ function love.load()
 
     board = Board()
 
-    love.system.openURL("http://localhost:8080")
+    -- love.system.openURL("http://localhost:8080")
 end
 
 function love.draw()
