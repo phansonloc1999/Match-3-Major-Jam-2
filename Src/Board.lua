@@ -39,7 +39,7 @@ function Board:init()
     end
 
     self.prevSelectedElementPos = nil
-    self.isSwappingElements = false
+    self.ignoreUserInput = true
     self.swappingElement1, self.swappingElement2 = nil, nil ---@type Element
 
     self:processMatches()
@@ -102,7 +102,7 @@ function Board:draw()
 end
 
 function Board:update(dt)
-    if (not self.isSwappingElements) then
+    if (not self.ignoreUserInput) then
         for i = 1, BOARD_COLUMN_NUMBER do
             for j = 1, BOARD_ROW_NUMBER do
                 if (self.cellCollisionBoxes[i][j]:collidesWithMouse() and love.mouse.wasPressed(1)) then
@@ -119,7 +119,7 @@ function Board:update(dt)
                                 self.elements[self.prevSelectedElementPos.row][self.prevSelectedElementPos.column] ~= 0 and
                                 self.elements[i][j] ~= 0)
                          then
-                            self.isSwappingElements = true
+                            self.ignoreUserInput = true
 
                             self:swapElements(self.prevSelectedElementPos.row, self.prevSelectedElementPos.column, i, j)
                         end
@@ -156,9 +156,8 @@ function Board:swapElements(row1, column1, row2, column2)
         function()
             self.elements[row1][column1] = temp2
             self.elements[row2][column2] = temp1
-            self.swappingElement1, self.swappingElement2 = nil, nil
 
-            self:processMatches()
+            self:processMatches(row1, column1, row2, column2)
         end
     )
     Timer.tween(1, self.swappingElement2, {x = self.swappingElement1.x, y = self.swappingElement1.y}, "linear")
@@ -208,7 +207,7 @@ function Board:checkColumnForMatches(column)
     return matches
 end
 
-function Board:processMatches()
+function Board:processMatches(row1, column1, row2, column2)
     local rowMatches = {}
     local columnMatches = {}
     local matchCount = 0
@@ -228,8 +227,24 @@ function Board:processMatches()
         end
     end
 
-    if (matchCount == 0) then
-        self.isSwappingElements = false
+    if (matchCount == 0) and self.swappingElement1 and self.swappingElement2 then
+        local temp1, temp2 = self.elements[row1][column1], self.elements[row2][column2]
+        self.elements[row1][column1], self.elements[row2][column2] = 0, 0
+
+        Timer.tween(
+            1,
+            self.swappingElement1,
+            {x = self.swappingElement2.x, y = self.swappingElement2.y},
+            "linear",
+            function()
+                self.elements[row1][column1] = temp2
+                self.elements[row2][column2] = temp1
+
+                self.ignoreUserInput = false
+                self.swappingElement1, self.swappingElement2 = nil, nil
+            end
+        )
+        Timer.tween(1, self.swappingElement2, {x = self.swappingElement1.x, y = self.swappingElement1.y}, "linear")
     end
 
     Timer.after(
@@ -254,6 +269,8 @@ function Board:processMatches()
                         print("==============================")
                     end
                 end
+
+                self.swappingElement1, self.swappingElement2 = nil, nil
 
                 --- Then regen
                 self:regenRemovedElements(rowMatches, columnMatches)
@@ -281,7 +298,7 @@ function Board:regenRemovedElements(rowMatches, columnMatches)
                 end
             end
 
-            self.isSwappingElements = false
+            self.ignoreUserInput = false
             Timer.clear()
         end
     )
