@@ -3,6 +3,9 @@ Board = Class {}
 
 BOARD_ROW_NUMBER, BOARD_COLUMN_NUMBER = 5, 5
 CELL_WIDTH, CELL_HEIGHT = 100, 100
+BOARD_X, BOARD_Y =
+    WINDOW_WIDTH / 2 - BOARD_COLUMN_NUMBER * CELL_WIDTH / 2,
+    WINDOW_HEIGHT / 2 - BOARD_ROW_NUMBER * CELL_HEIGHT / 2
 ELEMENT_RADIUS = 30
 
 function Board:init()
@@ -30,12 +33,13 @@ function Board:init()
         for j = 1, BOARD_ROW_NUMBER do
             table.insert(
                 self.cellCollisionBoxes[i],
-                CollisionBox((j - 1) * CELL_WIDTH, (i - 1) * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT)
+                CollisionBox(BOARD_X + (j - 1) * CELL_WIDTH, BOARD_Y + (i - 1) * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT)
             )
         end
     end
 
     self.prevSelectedElementPos = nil
+    self.isSwappingElements = false
     self.swappingElement1, self.swappingElement2 = nil, nil ---@type Element
 
     self:processMatches()
@@ -45,7 +49,13 @@ function Board:draw()
     -- Render cells
     for i = 1, BOARD_COLUMN_NUMBER do
         for j = 1, BOARD_ROW_NUMBER do
-            love.graphics.rectangle("line", (j - 1) * CELL_WIDTH, (i - 1) * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT)
+            love.graphics.rectangle(
+                "line",
+                BOARD_X + (j - 1) * CELL_WIDTH,
+                BOARD_Y + (i - 1) * CELL_HEIGHT,
+                CELL_WIDTH,
+                CELL_HEIGHT
+            )
         end
     end
 
@@ -73,8 +83,8 @@ function Board:draw()
             if (self.elements[i][j] ~= 0) then
                 love.graphics.circle(
                     "fill",
-                    (j - 1) * CELL_WIDTH + CELL_WIDTH / 2,
-                    (i - 1) * CELL_HEIGHT + CELL_HEIGHT / 2,
+                    BOARD_X + (j - 1) * CELL_WIDTH + CELL_WIDTH / 2,
+                    BOARD_Y + (i - 1) * CELL_HEIGHT + CELL_HEIGHT / 2,
                     ELEMENT_RADIUS
                 )
             end
@@ -92,23 +102,29 @@ function Board:draw()
 end
 
 function Board:update(dt)
-    for i = 1, BOARD_COLUMN_NUMBER do
-        for j = 1, BOARD_ROW_NUMBER do
-            if (self.cellCollisionBoxes[i][j]:collidesWithMouse() and love.mouse.wasPressed(1)) then
-                if (self.prevSelectedElementPos == nil) then
-                    self.prevSelectedElementPos = {row = i, column = j}
-                else
-                    if
-                        (self:isNeighborElements(
-                            self.prevSelectedElementPos.row,
-                            self.prevSelectedElementPos.column,
-                            i,
-                            j
-                        ))
-                     then
-                        self:swapElements(self.prevSelectedElementPos.row, self.prevSelectedElementPos.column, i, j)
+    if (not self.isSwappingElements) then
+        for i = 1, BOARD_COLUMN_NUMBER do
+            for j = 1, BOARD_ROW_NUMBER do
+                if (self.cellCollisionBoxes[i][j]:collidesWithMouse() and love.mouse.wasPressed(1)) then
+                    if (self.prevSelectedElementPos == nil) then
+                        self.prevSelectedElementPos = {row = i, column = j}
+                    else
+                        if
+                            (self:isNeighborElements(
+                                self.prevSelectedElementPos.row,
+                                self.prevSelectedElementPos.column,
+                                i,
+                                j
+                            ) and
+                                self.elements[self.prevSelectedElementPos.row][self.prevSelectedElementPos.column] ~= 0 and
+                                self.elements[i][j] ~= 0)
+                         then
+                            self.isSwappingElements = true
+
+                            self:swapElements(self.prevSelectedElementPos.row, self.prevSelectedElementPos.column, i, j)
+                        end
+                        self.prevSelectedElementPos = nil
                     end
-                    self.prevSelectedElementPos = nil
                 end
             end
         end
@@ -120,9 +136,17 @@ function Board:swapElements(row1, column1, row2, column2)
     self.elements[row1][column1], self.elements[row2][column2] = 0, 0
 
     self.swappingElement1 =
-        Element((column1 - 1) * CELL_WIDTH + CELL_WIDTH / 2, (row1 - 1) * CELL_HEIGHT + CELL_HEIGHT / 2, temp1)
+        SwappingElement(
+        BOARD_X + (column1 - 1) * CELL_WIDTH + CELL_WIDTH / 2,
+        BOARD_Y + (row1 - 1) * CELL_HEIGHT + CELL_HEIGHT / 2,
+        temp1
+    )
     self.swappingElement2 =
-        Element((column2 - 1) * CELL_WIDTH + CELL_WIDTH / 2, (row2 - 1) * CELL_HEIGHT + CELL_HEIGHT / 2, temp2)
+        SwappingElement(
+        BOARD_X + (column2 - 1) * CELL_WIDTH + CELL_WIDTH / 2,
+        BOARD_Y + (row2 - 1) * CELL_HEIGHT + CELL_HEIGHT / 2,
+        temp2
+    )
 
     Timer.tween(
         1,
@@ -204,6 +228,10 @@ function Board:processMatches()
         end
     end
 
+    if (matchCount == 0) then
+        self.isSwappingElements = false
+    end
+
     Timer.after(
         1,
         function()
@@ -211,7 +239,7 @@ function Board:processMatches()
                 for i, value in pairs(rowMatches) do
                     for j = 1, #rowMatches[i] do
                         for k = rowMatches[i][j].first, rowMatches[i][j].last do
-                            print("Element was " .. self.elements[i][k])
+                            print("Element type was " .. self.elements[i][k])
                             self.elements[i][k] = 0
                         end
                         print("==============================")
@@ -220,7 +248,7 @@ function Board:processMatches()
                 for i, value in pairs(columnMatches) do
                     for j = 1, #columnMatches[i] do
                         for k = columnMatches[i][j].first, columnMatches[i][j].last do
-                            print("Element was " .. self.elements[k][i])
+                            print("Element type was " .. self.elements[k][i])
                             self.elements[k][i] = 0
                         end
                         print("==============================")
@@ -253,6 +281,7 @@ function Board:regenRemovedElements(rowMatches, columnMatches)
                 end
             end
 
+            self.isSwappingElements = false
             Timer.clear()
         end
     )

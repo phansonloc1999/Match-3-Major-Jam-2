@@ -1,12 +1,12 @@
----@class Element
-Element = Class {}
+---@class SwappingElement
+SwappingElement = Class {}
 
-function Element:init(x, y, type)
+function SwappingElement:init(x, y, type)
     self.x, self.y = x, y
     self.type = type
 end
 
-function Element:draw()
+function SwappingElement:draw()
     -- Set different colors for elements
     if (self.type == 1) then
         love.graphics.setColor(0, 1, 0)
