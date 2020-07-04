@@ -36,6 +36,7 @@ function Board:init()
     end
 
     self.prevSelectedElementPos = nil
+    self.swappingElement1, self.swappingElement2 = nil, nil ---@type Element
 
     self:processMatches()
 end
@@ -79,6 +80,14 @@ function Board:draw()
             end
         end
     end
+
+    if (self.swappingElement1) then
+        self.swappingElement1:draw()
+    end
+    if (self.swappingElement2) then
+        self.swappingElement2:draw()
+    end
+
     love.graphics.setColor(1, 1, 1)
 end
 
@@ -98,7 +107,6 @@ function Board:update(dt)
                         ))
                      then
                         self:swapElements(self.prevSelectedElementPos.row, self.prevSelectedElementPos.column, i, j)
-                        self:processMatches()
                     end
                     self.prevSelectedElementPos = nil
                 end
@@ -108,11 +116,28 @@ function Board:update(dt)
 end
 
 function Board:swapElements(row1, column1, row2, column2)
-    assert(self.elements[row1][column1], "Board doesn't contain element at row" .. row1 .. " column" .. column1)
-    assert(self.elements[row2][column2], "Board doesn't contain element at row" .. row2 .. " column" .. column2)
-    local temp = self.elements[row1][column1]
-    self.elements[row1][column1] = self.elements[row2][column2]
-    self.elements[row2][column2] = temp
+    local temp1, temp2 = self.elements[row1][column1], self.elements[row2][column2]
+    self.elements[row1][column1], self.elements[row2][column2] = 0, 0
+
+    self.swappingElement1 =
+        Element((column1 - 1) * CELL_WIDTH + CELL_WIDTH / 2, (row1 - 1) * CELL_HEIGHT + CELL_HEIGHT / 2, temp1)
+    self.swappingElement2 =
+        Element((column2 - 1) * CELL_WIDTH + CELL_WIDTH / 2, (row2 - 1) * CELL_HEIGHT + CELL_HEIGHT / 2, temp2)
+
+    Timer.tween(
+        1,
+        self.swappingElement1,
+        {x = self.swappingElement2.x, y = self.swappingElement2.y},
+        "linear",
+        function()
+            self.elements[row1][column1] = temp2
+            self.elements[row2][column2] = temp1
+            self.swappingElement1, self.swappingElement2 = nil, nil
+
+            self:processMatches()
+        end
+    )
+    Timer.tween(1, self.swappingElement2, {x = self.swappingElement1.x, y = self.swappingElement1.y}, "linear")
 end
 
 function Board:isNeighborElements(row1, column1, row2, column2)
