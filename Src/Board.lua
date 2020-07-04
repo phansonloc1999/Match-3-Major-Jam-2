@@ -7,6 +7,7 @@ BOARD_X, BOARD_Y =
     WINDOW_WIDTH / 2 - BOARD_COLUMN_NUMBER * CELL_WIDTH / 2,
     WINDOW_HEIGHT / 2 - BOARD_ROW_NUMBER * CELL_HEIGHT / 2
 ELEMENT_RADIUS = 30
+NUM_OF_ELEMENT_TYPE = 5
 
 function Board:init()
     self.elements = {}
@@ -16,7 +17,7 @@ function Board:init()
             if (i == 1 and j == 1) then
                 self.elements[i][j] = 2
             else
-                table.insert(self.elements[i], math.random(5))
+                table.insert(self.elements[i], math.random(NUM_OF_ELEMENT_TYPE))
             end
         end
     end
@@ -39,10 +40,8 @@ function Board:init()
     end
 
     self.prevSelectedElementPos = nil
-    self.ignoreUserInput = true
+    self.ignoreUserInput = false
     self.swappingElement1, self.swappingElement2 = nil, nil ---@type Element
-
-    self:processMatches()
 end
 
 function Board:draw()
@@ -105,25 +104,36 @@ function Board:update(dt)
     if (not self.ignoreUserInput) then
         for i = 1, BOARD_COLUMN_NUMBER do
             for j = 1, BOARD_ROW_NUMBER do
-                if (self.cellCollisionBoxes[i][j]:collidesWithMouse() and love.mouse.wasPressed(1)) then
-                    if (self.prevSelectedElementPos == nil) then
-                        self.prevSelectedElementPos = {row = i, column = j}
-                    else
-                        if
-                            (self:isNeighborElements(
-                                self.prevSelectedElementPos.row,
-                                self.prevSelectedElementPos.column,
-                                i,
-                                j
-                            ) and
-                                self.elements[self.prevSelectedElementPos.row][self.prevSelectedElementPos.column] ~= 0 and
-                                self.elements[i][j] ~= 0)
-                         then
-                            self.ignoreUserInput = true
+                if (self.cellCollisionBoxes[i][j]:collidesWithMouse()) then
+                    if (love.mouse.wasPressed(1)) then
+                        if (self.prevSelectedElementPos == nil) then
+                            self.prevSelectedElementPos = {row = i, column = j}
+                        else
+                            if
+                                (self:isNeighborElements(
+                                    self.prevSelectedElementPos.row,
+                                    self.prevSelectedElementPos.column,
+                                    i,
+                                    j
+                                ) and
+                                    self.elements[self.prevSelectedElementPos.row][self.prevSelectedElementPos.column] ~=
+                                        0 and
+                                    self.elements[i][j] ~= 0)
+                             then
+                                self.ignoreUserInput = true
 
-                            self:swapElements(self.prevSelectedElementPos.row, self.prevSelectedElementPos.column, i, j)
+                                self:swapElements(
+                                    self.prevSelectedElementPos.row,
+                                    self.prevSelectedElementPos.column,
+                                    i,
+                                    j
+                                )
+                            end
+                            self.prevSelectedElementPos = nil
                         end
-                        self.prevSelectedElementPos = nil
+                    end
+                    if (love.mouse.wasPressed(2)) then
+                        self.elements[i][j] = self.elements[i][j] < NUM_OF_ELEMENT_TYPE and self.elements[i][j] + 1 or 1
                     end
                 end
             end
@@ -273,33 +283,34 @@ function Board:processMatches(row1, column1, row2, column2)
                 self.swappingElement1, self.swappingElement2 = nil, nil
 
                 --- Then regen
-                self:regenRemovedElements(rowMatches, columnMatches)
+                self:regenRemovedElements(rowMatches, columnMatches, row1, column1, row2, column2)
             end
         end
     )
 end
 
-function Board:regenRemovedElements(rowMatches, columnMatches)
+function Board:regenRemovedElements(rowMatches, columnMatches, row1, column1, row2, column2)
     Timer.after(
         2,
         function()
             for i, value in pairs(rowMatches) do
                 for j = 1, #rowMatches[i] do
                     for k = rowMatches[i][j].first, rowMatches[i][j].last do
-                        self.elements[i][k] = math.random(5)
+                        self.elements[i][k] = math.random(NUM_OF_ELEMENT_TYPE)
                     end
                 end
             end
             for i, value in pairs(columnMatches) do
                 for j = 1, #columnMatches[i] do
                     for k = columnMatches[i][j].first, columnMatches[i][j].last do
-                        self.elements[k][i] = math.random(5)
+                        self.elements[k][i] = math.random(NUM_OF_ELEMENT_TYPE)
                     end
                 end
             end
 
             self.ignoreUserInput = false
-            Timer.clear()
+
+            self:processMatches(row1, column1, row2, column2)
         end
     )
 end
