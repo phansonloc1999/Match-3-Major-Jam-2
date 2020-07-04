@@ -61,6 +61,7 @@ function Board:draw()
     -- Render elements
     for i = 1, BOARD_COLUMN_NUMBER do
         for j = 1, BOARD_ROW_NUMBER do
+			--[[
             -- Set different colors for elements
             if (self.elements[i][j] == 1) then
                 love.graphics.setColor(0, 1, 0)
@@ -87,6 +88,20 @@ function Board:draw()
                     ELEMENT_RADIUS
                 )
             end
+			]]--
+
+			local id = self.elements[i][j]
+			if id ~= 0 then
+				love.graphics.setColor(1, 1, 1)
+				love.graphics.draw(
+					Sprites.elements[self.elements[i][j]],
+					BOARD_X + (j - 1) * CELL_WIDTH + CELL_WIDTH / 2,
+		            BOARD_Y + (i - 1) * CELL_HEIGHT + CELL_HEIGHT / 2,
+					0, 1, 1,
+					Sprites.elements[self.elements[i][j]]:getWidth()/2,
+					Sprites.elements[self.elements[i][j]]:getHeight()/2
+				)
+			end
         end
     end
 
@@ -159,7 +174,7 @@ function Board:swapElements(row1, column1, row2, column2)
     )
 
     Timer.tween(
-        1,
+        0.2,
         self.swappingElement1,
         {x = self.swappingElement2.x, y = self.swappingElement2.y},
         "linear",
@@ -170,7 +185,7 @@ function Board:swapElements(row1, column1, row2, column2)
             self:processMatches(row1, column1, row2, column2)
         end
     )
-    Timer.tween(1, self.swappingElement2, {x = self.swappingElement1.x, y = self.swappingElement1.y}, "linear")
+    Timer.tween(0.2, self.swappingElement2, {x = self.swappingElement1.x, y = self.swappingElement1.y}, "linear")
 end
 
 function Board:isNeighborElements(row1, column1, row2, column2)
@@ -242,7 +257,7 @@ function Board:processMatches(row1, column1, row2, column2)
         self.elements[row1][column1], self.elements[row2][column2] = 0, 0
 
         Timer.tween(
-            1,
+            0.2,
             self.swappingElement1,
             {x = self.swappingElement2.x, y = self.swappingElement2.y},
             "linear",
@@ -254,7 +269,7 @@ function Board:processMatches(row1, column1, row2, column2)
                 self.swappingElement1, self.swappingElement2 = nil, nil
             end
         )
-        Timer.tween(1, self.swappingElement2, {x = self.swappingElement1.x, y = self.swappingElement1.y}, "linear")
+        Timer.tween(0.2, self.swappingElement2, {x = self.swappingElement1.x, y = self.swappingElement1.y}, "linear")
     end
 
     Timer.after(

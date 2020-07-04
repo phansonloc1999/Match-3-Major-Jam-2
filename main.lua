@@ -4,6 +4,7 @@
 -- dbg.tcpListen("localhost", 9966)
 
 require("Src/Dependencies")
+require("Src/Assets")
 
 function love.load()
     math.randomseed(os.time())

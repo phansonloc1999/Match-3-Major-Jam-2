@@ -7,6 +7,7 @@ function SwappingElement:init(x, y, type)
 end
 
 function SwappingElement:draw()
+	--[[
     -- Set different colors for elements
     if (self.type == 1) then
         love.graphics.setColor(0, 1, 0)
@@ -27,4 +28,14 @@ function SwappingElement:draw()
     love.graphics.circle("fill", self.x, self.y, ELEMENT_RADIUS)
 
     love.graphics.setColor(1, 1, 1)
+	]]--
+
+	love.graphics.setColor(1, 1, 1)
+	love.graphics.draw(
+		Sprites.elements[self.type],
+		self.x, self.y,
+		0, 1, 1,
+		Sprites.elements[self.type]:getWidth()/2,
+		Sprites.elements[self.type]:getHeight()/2
+	)
 end
