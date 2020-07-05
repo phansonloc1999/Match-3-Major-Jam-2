@@ -227,7 +227,6 @@ function Board:processMatches(row1, column1, row2, column2)
         Timer.after(
             0.2,
             function()
-                print("Released")
                 self.ignoreUserInput = false
             end
         )
@@ -278,32 +277,41 @@ function Board:processMatches(row1, column1, row2, column2)
 
                 self.swappingElement1, self.swappingElement2 = nil, nil
 
-                --- Then regen
+                self:dropElements()
+
                 self:regenRemovedElements(rowMatches, columnMatches, row1, column1, row2, column2)
             end
         )
     end
 end
 
-function Board:regenRemovedElements(rowMatches, columnMatches, row1, column1, row2, column2)
+function Board:regenRemovedElements(row1, column1, row2, column2)
     Timer.after(
         2,
         function()
-            for i, value in pairs(rowMatches) do
-                for j = 1, #rowMatches[i] do
-                    for k = rowMatches[i][j].first, rowMatches[i][j].last do
-                        self.elements[i][k] = math.random(NUM_OF_ELEMENT_TYPE)
-                    end
-                end
-            end
-            for i, value in pairs(columnMatches) do
-                for j = 1, #columnMatches[i] do
-                    for k = columnMatches[i][j].first, columnMatches[i][j].last do
-                        self.elements[k][i] = math.random(NUM_OF_ELEMENT_TYPE)
+            for i = 1, BOARD_ROW_NUMBER do
+                for j = 1, BOARD_COLUMN_NUMBER do
+                    if (self.elements[i][j] == 0) then
+                        self.elements[i][j] = math.random(5)
                     end
                 end
             end
             self:processMatches(row1, column1, row2, column2)
         end
     )
+end
+
+function Board:dropElements()
+    for column = 1, BOARD_COLUMN_NUMBER do
+        for row = BOARD_ROW_NUMBER - 1, 1, -1 do
+            if (self.elements[row][column] ~= 0) then
+                local i, j = row, column
+                while (i <= BOARD_ROW_NUMBER - 1 and self.elements[i + 1][j] == 0) do
+                    self.elements[i + 1][j] = self.elements[i][j]
+                    self.elements[i][j] = 0
+                    i = i + 1
+                end
+            end
+        end
+    end
 end
