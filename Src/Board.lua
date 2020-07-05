@@ -11,9 +11,9 @@ NUM_OF_ELEMENT_TYPE = 5
 
 function Board:init()
     self.elements = {}
-    for i = 1, BOARD_COLUMN_NUMBER do
+    for i = 1, BOARD_ROW_NUMBER do
         self.elements[i] = {}
-        for j = 1, BOARD_ROW_NUMBER do
+        for j = 1, BOARD_COLUMN_NUMBER do
             if (i == 1 and j == 1) then
                 self.elements[i][j] = 2
             else
@@ -29,9 +29,9 @@ function Board:init()
     end
 
     self.cellCollisionBoxes = {} ---@type CollisionBox[][]
-    for i = 1, BOARD_COLUMN_NUMBER do
+    for i = 1, BOARD_ROW_NUMBER do
         self.cellCollisionBoxes[i] = {}
-        for j = 1, BOARD_ROW_NUMBER do
+        for j = 1, BOARD_COLUMN_NUMBER do
             table.insert(
                 self.cellCollisionBoxes[i],
                 CollisionBox(BOARD_X + (j - 1) * CELL_WIDTH, BOARD_Y + (i - 1) * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT)
@@ -46,8 +46,8 @@ end
 
 function Board:draw()
     -- Render cells
-    for i = 1, BOARD_COLUMN_NUMBER do
-        for j = 1, BOARD_ROW_NUMBER do
+    for i = 1, BOARD_ROW_NUMBER do
+        for j = 1, BOARD_COLUMN_NUMBER do
             love.graphics.rectangle(
                 "line",
                 BOARD_X + (j - 1) * CELL_WIDTH,
@@ -59,8 +59,8 @@ function Board:draw()
     end
 
     -- Render elements
-    for i = 1, BOARD_COLUMN_NUMBER do
-        for j = 1, BOARD_ROW_NUMBER do
+    for i = 1, BOARD_ROW_NUMBER do
+        for j = 1, BOARD_COLUMN_NUMBER do
             local id = self.elements[i][j]
             if id ~= 0 then
                 love.graphics.setColor(1, 1, 1)
@@ -90,8 +90,8 @@ end
 
 function Board:update(dt)
     if (not self.ignoreUserInput) then
-        for i = 1, BOARD_COLUMN_NUMBER do
-            for j = 1, BOARD_ROW_NUMBER do
+        for i = 1, BOARD_ROW_NUMBER do
+            for j = 1, BOARD_COLUMN_NUMBER do
                 if (self.cellCollisionBoxes[i][j]:collidesWithMouse()) then
                     if (love.mouse.wasPressed(1)) then
                         if (self.prevSelectedElementPos == nil) then
