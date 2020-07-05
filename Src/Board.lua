@@ -61,47 +61,20 @@ function Board:draw()
     -- Render elements
     for i = 1, BOARD_COLUMN_NUMBER do
         for j = 1, BOARD_ROW_NUMBER do
-			--[[
-            -- Set different colors for elements
-            if (self.elements[i][j] == 1) then
-                love.graphics.setColor(0, 1, 0)
-            end
-            if (self.elements[i][j] == 2) then
-                love.graphics.setColor(1, 0, 0)
-            end
-            if (self.elements[i][j] == 3) then
-                love.graphics.setColor(0, 0, 1)
-            end
-            if (self.elements[i][j] == 4) then
-                love.graphics.setColor(1, 1, 0)
-            end
-            if (self.elements[i][j] == 5) then
-                love.graphics.setColor(0, 1, 1)
-            end
-
-            -- Draw a circle element
-            if (self.elements[i][j] ~= 0) then
-                love.graphics.circle(
-                    "fill",
+            local id = self.elements[i][j]
+            if id ~= 0 then
+                love.graphics.setColor(1, 1, 1)
+                love.graphics.draw(
+                    Sprites.elements[self.elements[i][j]],
                     BOARD_X + (j - 1) * CELL_WIDTH + CELL_WIDTH / 2,
                     BOARD_Y + (i - 1) * CELL_HEIGHT + CELL_HEIGHT / 2,
-                    ELEMENT_RADIUS
+                    0,
+                    1,
+                    1,
+                    Sprites.elements[self.elements[i][j]]:getWidth() / 2,
+                    Sprites.elements[self.elements[i][j]]:getHeight() / 2
                 )
             end
-			]]--
-
-			local id = self.elements[i][j]
-			if id ~= 0 then
-				love.graphics.setColor(1, 1, 1)
-				love.graphics.draw(
-					Sprites.elements[self.elements[i][j]],
-					BOARD_X + (j - 1) * CELL_WIDTH + CELL_WIDTH / 2,
-		            BOARD_Y + (i - 1) * CELL_HEIGHT + CELL_HEIGHT / 2,
-					0, 1, 1,
-					Sprites.elements[self.elements[i][j]]:getWidth()/2,
-					Sprites.elements[self.elements[i][j]]:getHeight()/2
-				)
-			end
         end
     end
 
@@ -241,57 +214,65 @@ function Board:processMatches(row1, column1, row2, column2)
         table.insert(rowMatches, self:checkRowForMatches(i))
         if #rowMatches[i] > 0 then
             matchCount = matchCount + 1
-            print("Match at row " .. i)
         end
     end
     for i = 1, BOARD_COLUMN_NUMBER do
         table.insert(columnMatches, self:checkColumnForMatches(i))
         if #columnMatches[i] > 0 then
             matchCount = matchCount + 1
-            print("Match at column " .. i)
         end
     end
 
-    if (matchCount == 0) and self.swappingElement1 and self.swappingElement2 then
-        local temp1, temp2 = self.elements[row1][column1], self.elements[row2][column2]
-        self.elements[row1][column1], self.elements[row2][column2] = 0, 0
-
-        Timer.tween(
+    if (matchCount == 0) then
+        Timer.after(
             0.2,
-            self.swappingElement1,
-            {x = self.swappingElement2.x, y = self.swappingElement2.y},
-            "linear",
             function()
-                self.elements[row1][column1] = temp2
-                self.elements[row2][column2] = temp1
-
+                print("Released")
                 self.ignoreUserInput = false
-                self.swappingElement1, self.swappingElement2 = nil, nil
             end
         )
-        Timer.tween(0.2, self.swappingElement2, {x = self.swappingElement1.x, y = self.swappingElement1.y}, "linear")
+
+        if self.swappingElement1 and self.swappingElement2 then
+            local temp1, temp2 = self.elements[row1][column1], self.elements[row2][column2]
+            self.elements[row1][column1], self.elements[row2][column2] = 0, 0
+
+            Timer.tween(
+                0.2,
+                self.swappingElement1,
+                {x = self.swappingElement2.x, y = self.swappingElement2.y},
+                "linear",
+                function()
+                    self.elements[row1][column1] = temp2
+                    self.elements[row2][column2] = temp1
+
+                    self.swappingElement1, self.swappingElement2 = nil, nil
+                end
+            )
+            Timer.tween(
+                0.2,
+                self.swappingElement2,
+                {x = self.swappingElement1.x, y = self.swappingElement1.y},
+                "linear"
+            )
+        end
     end
 
-    Timer.after(
-        1,
-        function()
-            if (matchCount > 0) then
+    if (matchCount > 0) then
+        Timer.after(
+            1,
+            function()
                 for i, value in pairs(rowMatches) do
                     for j = 1, #rowMatches[i] do
                         for k = rowMatches[i][j].first, rowMatches[i][j].last do
-                            print("Element type was " .. self.elements[i][k])
                             self.elements[i][k] = 0
                         end
-                        print("==============================")
                     end
                 end
                 for i, value in pairs(columnMatches) do
                     for j = 1, #columnMatches[i] do
                         for k = columnMatches[i][j].first, columnMatches[i][j].last do
-                            print("Element type was " .. self.elements[k][i])
                             self.elements[k][i] = 0
                         end
-                        print("==============================")
                     end
                 end
 
@@ -300,8 +281,8 @@ function Board:processMatches(row1, column1, row2, column2)
                 --- Then regen
                 self:regenRemovedElements(rowMatches, columnMatches, row1, column1, row2, column2)
             end
-        end
-    )
+        )
+    end
 end
 
 function Board:regenRemovedElements(rowMatches, columnMatches, row1, column1, row2, column2)
@@ -322,9 +303,6 @@ function Board:regenRemovedElements(rowMatches, columnMatches, row1, column1, ro
                     end
                 end
             end
-
-            self.ignoreUserInput = false
-
             self:processMatches(row1, column1, row2, column2)
         end
     )
