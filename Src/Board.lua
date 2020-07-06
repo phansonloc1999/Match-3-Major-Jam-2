@@ -42,6 +42,8 @@ function Board:init()
     self.prevSelectedElementPos = nil
     self.ignoreUserInput = false
     self.swappingElement1, self.swappingElement2 = nil, nil ---@type Element
+
+    self.droppingElements = {} ---@type Element
 end
 
 function Board:draw()
@@ -83,6 +85,10 @@ function Board:draw()
     end
     if (self.swappingElement2) then
         self.swappingElement2:draw()
+    end
+
+    for i = 1, #self.droppingElements do
+        self.droppingElements[i]:draw()
     end
 
     love.graphics.setColor(1, 1, 1)
@@ -189,7 +195,7 @@ end
 function Board:checkColumnForMatches(column)
     local matches = {}
     local first, last
-    for row = 1, BOARD_ROW_NUMBER do
+    for row = 2, BOARD_ROW_NUMBER + 1 do
         if (self.elements[row][column] == self.elements[row + 1][column]) then
             if (first == nil) then
                 first = row
@@ -226,9 +232,11 @@ function Board:processMatches(row1, column1, row2, column2)
 
     if (matchCount == 0) then
         Timer.after(
-            0.2,
+            0.21,
             function()
                 self.ignoreUserInput = false
+
+                Timer.clear()
             end
         )
 
@@ -279,8 +287,6 @@ function Board:processMatches(row1, column1, row2, column2)
                 self.swappingElement1, self.swappingElement2 = nil, nil
 
                 self:dropElements()
-
-                self:regenRemovedElements(rowMatches, columnMatches, row1, column1, row2, column2)
             end
         )
     end
@@ -297,22 +303,58 @@ function Board:regenRemovedElements(row1, column1, row2, column2)
                     end
                 end
             end
-            self:processMatches(row1, column1, row2, column2)
+            self:processMatches()
         end
     )
 end
 
 function Board:dropElements()
+    local endPositions = {}
+
     for column = 1, BOARD_COLUMN_NUMBER do
         for row = BOARD_ROW_NUMBER, 1, -1 do
             if (self.elements[row][column] ~= 0) then
-                local i, j = row, column
+                local i, j, type = row, column, self.elements[row][column]
+                local elementFell = false
                 while (i <= BOARD_ROW_NUMBER and self.elements[i + 1][j] == 0) do
                     self.elements[i + 1][j] = self.elements[i][j]
                     self.elements[i][j] = 0
                     i = i + 1
+
+                    elementFell = true
+                end
+
+                if (elementFell) then
+                    table.insert(
+                        endPositions,
+                        {
+                            x = BOARD_X + (j - 1) * CELL_WIDTH + CELL_WIDTH / 2,
+                            y = BOARD_Y + (i - 1) * CELL_HEIGHT + CELL_HEIGHT / 2
+                        }
+                    )
+                    table.insert(
+                        self.droppingElements,
+                        Element(
+                            BOARD_X + (column - 1) * CELL_WIDTH + CELL_WIDTH / 2,
+                            BOARD_Y + (row - 1) * CELL_HEIGHT + CELL_HEIGHT / 2,
+                            type
+                        )
+                    )
                 end
             end
         end
     end
+
+    for i = 1, #self.droppingElements do
+        Timer.tween(1, self.droppingElements[i], endPositions[i], "linear")
+    end
+
+    Timer.after(
+        1,
+        function()
+            self.droppingElements = {}
+
+            self:regenRemovedElements()
+        end
+    )
 end
