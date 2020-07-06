@@ -8,10 +8,21 @@ BOARD_X, BOARD_Y =
     WINDOW_HEIGHT / 2 - BOARD_ROW_NUMBER * CELL_HEIGHT / 2
 ELEMENT_RADIUS = 30
 NUM_OF_ELEMENT_TYPE = 5
+ELEMENT_SWAP_DURATION = 0.4
+
+local function myStencilFunc()
+    love.graphics.rectangle(
+        "fill",
+        BOARD_X,
+        BOARD_Y - BOARD_ROW_NUMBER * CELL_HEIGHT,
+        BOARD_COLUMN_NUMBER * CELL_WIDTH,
+        BOARD_ROW_NUMBER * CELL_HEIGHT
+    )
+end
 
 function Board:init()
     self.elements = {}
-    for i = 1, BOARD_ROW_NUMBER + 1 do
+    for i = 1, BOARD_ROW_NUMBER do
         self.elements[i] = {}
         for j = 1, BOARD_COLUMN_NUMBER do
             if (i == 1 and j == 1) then
@@ -23,13 +34,13 @@ function Board:init()
     end
 
     --- Add an extra row to avoid indexing nil value when check last column for matches
-    self.elements[BOARD_ROW_NUMBER + 2] = {}
+    self.elements[BOARD_ROW_NUMBER + 1] = {}
     for i = 1, BOARD_COLUMN_NUMBER do
-        table.insert(self.elements[BOARD_ROW_NUMBER + 2], 0)
+        table.insert(self.elements[BOARD_ROW_NUMBER + 1], 0)
     end
 
     self.cellCollisionBoxes = {} ---@type CollisionBox[][]
-    for i = 2, BOARD_ROW_NUMBER + 1 do
+    for i = 1, BOARD_ROW_NUMBER do
         self.cellCollisionBoxes[i] = {}
         for j = 1, BOARD_COLUMN_NUMBER do
             table.insert(
@@ -43,12 +54,12 @@ function Board:init()
     self.ignoreUserInput = false
     self.swappingElement1, self.swappingElement2 = nil, nil ---@type Element
 
-    self.droppingElements = {} ---@type Element
+    self.droppingElements = {} ---@type Element[]
 end
 
 function Board:draw()
     -- Render cells
-    for i = 1, BOARD_ROW_NUMBER + 1 do
+    for i = 1, BOARD_ROW_NUMBER do
         for j = 1, BOARD_COLUMN_NUMBER do
             love.graphics.rectangle(
                 "line",
@@ -61,7 +72,7 @@ function Board:draw()
     end
 
     -- Render elements
-    for i = 1, BOARD_ROW_NUMBER + 1 do
+    for i = 1, BOARD_ROW_NUMBER do
         for j = 1, BOARD_COLUMN_NUMBER do
             local id = self.elements[i][j]
             if id ~= 0 then
@@ -87,6 +98,17 @@ function Board:draw()
         self.swappingElement2:draw()
     end
 
+    love.graphics.stencil(myStencilFunc, "replace", 1)
+    love.graphics.setStencilTest("less", 1)
+
+    love.graphics.rectangle(
+        "fill",
+        BOARD_X,
+        BOARD_Y - BOARD_ROW_NUMBER * CELL_HEIGHT,
+        BOARD_COLUMN_NUMBER * CELL_WIDTH,
+        BOARD_ROW_NUMBER * CELL_HEIGHT
+    )
+
     for i = 1, #self.droppingElements do
         self.droppingElements[i]:draw()
     end
@@ -96,7 +118,7 @@ end
 
 function Board:update(dt)
     if (not self.ignoreUserInput) then
-        for i = 2, BOARD_ROW_NUMBER + 1 do
+        for i = 1, BOARD_ROW_NUMBER do
             for j = 1, BOARD_COLUMN_NUMBER do
                 if (self.cellCollisionBoxes[i][j]:collidesWithMouse()) then
                     if (love.mouse.wasPressed(1)) then
@@ -153,7 +175,7 @@ function Board:swapElements(row1, column1, row2, column2)
     )
 
     Timer.tween(
-        0.2,
+        ELEMENT_SWAP_DURATION,
         self.swappingElement1,
         {x = self.swappingElement2.x, y = self.swappingElement2.y},
         "linear",
@@ -164,7 +186,12 @@ function Board:swapElements(row1, column1, row2, column2)
             self:processMatches(row1, column1, row2, column2)
         end
     )
-    Timer.tween(0.2, self.swappingElement2, {x = self.swappingElement1.x, y = self.swappingElement1.y}, "linear")
+    Timer.tween(
+        ELEMENT_SWAP_DURATION,
+        self.swappingElement2,
+        {x = self.swappingElement1.x, y = self.swappingElement1.y},
+        "linear"
+    )
 end
 
 function Board:isNeighborElements(row1, column1, row2, column2)
@@ -195,7 +222,7 @@ end
 function Board:checkColumnForMatches(column)
     local matches = {}
     local first, last
-    for row = 2, BOARD_ROW_NUMBER + 1 do
+    for row = 1, BOARD_ROW_NUMBER do
         if (self.elements[row][column] == self.elements[row + 1][column]) then
             if (first == nil) then
                 first = row
@@ -216,9 +243,8 @@ function Board:processMatches(row1, column1, row2, column2)
     local columnMatches = {}
     local matchCount = 0
 
-    for i = 2, BOARD_ROW_NUMBER + 1 do
+    for i = 1, BOARD_ROW_NUMBER do
         table.insert(rowMatches, i, self:checkRowForMatches(i))
-        print(i)
         if #rowMatches[i] > 0 then
             matchCount = matchCount + 1
         end
@@ -232,7 +258,7 @@ function Board:processMatches(row1, column1, row2, column2)
 
     if (matchCount == 0) then
         Timer.after(
-            0.21,
+            ELEMENT_SWAP_DURATION,
             function()
                 self.ignoreUserInput = false
             end
@@ -243,7 +269,7 @@ function Board:processMatches(row1, column1, row2, column2)
             self.elements[row1][column1], self.elements[row2][column2] = 0, 0
 
             Timer.tween(
-                0.2,
+                ELEMENT_SWAP_DURATION,
                 self.swappingElement1,
                 {x = self.swappingElement2.x, y = self.swappingElement2.y},
                 "linear",
@@ -255,7 +281,7 @@ function Board:processMatches(row1, column1, row2, column2)
                 end
             )
             Timer.tween(
-                0.2,
+                ELEMENT_SWAP_DURATION,
                 self.swappingElement2,
                 {x = self.swappingElement1.x, y = self.swappingElement1.y},
                 "linear"
@@ -265,7 +291,7 @@ function Board:processMatches(row1, column1, row2, column2)
 
     if (matchCount > 0) then
         Timer.after(
-            1,
+            0.15,
             function()
                 for i, value in pairs(rowMatches) do
                     for j = 1, #rowMatches[i] do
@@ -291,16 +317,53 @@ function Board:processMatches(row1, column1, row2, column2)
 end
 
 function Board:regenRemovedElements(row1, column1, row2, column2)
-    Timer.after(
-        2,
-        function()
-            for i = 1, BOARD_ROW_NUMBER + 1 do
-                for j = 1, BOARD_COLUMN_NUMBER do
-                    if (self.elements[i][j] == 0) then
-                        self.elements[i][j] = math.random(5)
-                    end
-                end
+    local initBoard = table.deepcopy(self.elements)
+    local endPositions = {}
+    self.droppingElements = {}
+
+    for i = 1, BOARD_ROW_NUMBER do
+        for j = 1, BOARD_COLUMN_NUMBER do
+            if (self.elements[i][j] == 0) then
+                self.elements[i][j] = math.random(5)
+
+                table.insert(
+                    endPositions,
+                    {
+                        x = BOARD_X + (j - 1) * CELL_WIDTH + CELL_WIDTH / 2,
+                        y = BOARD_Y + (i - 1) * CELL_HEIGHT + CELL_HEIGHT / 2
+                    }
+                )
+                table.insert(
+                    self.droppingElements,
+                    Element(
+                        BOARD_X + (j - 1) * CELL_WIDTH + CELL_WIDTH / 2,
+                        BOARD_Y + (i - 1) * CELL_HEIGHT + CELL_HEIGHT / 2 - BOARD_ROW_NUMBER * CELL_HEIGHT,
+                        self.elements[i][j]
+                    )
+                )
             end
+        end
+    end
+
+    local resultBoard = table.deepcopy(self.elements)
+    self.elements = initBoard
+
+    local time = (endPositions[1].y - self.droppingElements[1].y) / 600
+    for i = 1, #self.droppingElements do
+        Timer.tween(
+            (endPositions[i].y - self.droppingElements[i].y) / 600,
+            self.droppingElements[i],
+            endPositions[i],
+            "linear"
+        )
+    end
+
+    Timer.after(
+        time,
+        function()
+            self.droppingElements = {}
+            self.elements = resultBoard
+
             self:processMatches()
         end
     )
@@ -311,11 +374,11 @@ function Board:dropElements()
 
     local initialBoard = table.deepcopy(self.elements)
     for column = 1, BOARD_COLUMN_NUMBER do
-        for row = BOARD_ROW_NUMBER, 1, -1 do
+        for row = BOARD_ROW_NUMBER - 1, 1, -1 do
             if (self.elements[row][column] ~= 0) then
                 local i, j, type = row, column, self.elements[row][column]
                 local elementFellOnce = false
-                while (i <= BOARD_ROW_NUMBER and self.elements[i + 1][j] == 0) do
+                while (i <= BOARD_ROW_NUMBER - 1 and self.elements[i + 1][j] == 0) do
                     if (not elementFellOnce) then
                         initialBoard[i][j] = 0
                         elementFellOnce = true
@@ -353,13 +416,8 @@ function Board:dropElements()
         Timer.tween(0.5, self.droppingElements[i], endPositions[i], "linear")
     end
 
-    Timer.after(
-        0.5,
-        function()
-            self.droppingElements = {}
-            self.elements = resultBoard
+    self.droppingElements = {}
+    self.elements = resultBoard
 
-            self:regenRemovedElements()
-        end
-    )
+    self:regenRemovedElements()
 end
