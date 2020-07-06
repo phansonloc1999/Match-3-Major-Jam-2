@@ -235,8 +235,6 @@ function Board:processMatches(row1, column1, row2, column2)
             0.21,
             function()
                 self.ignoreUserInput = false
-
-                Timer.clear()
             end
         )
 
@@ -311,20 +309,24 @@ end
 function Board:dropElements()
     local endPositions = {}
 
+    local initialBoard = table.deepcopy(self.elements)
     for column = 1, BOARD_COLUMN_NUMBER do
         for row = BOARD_ROW_NUMBER, 1, -1 do
             if (self.elements[row][column] ~= 0) then
                 local i, j, type = row, column, self.elements[row][column]
-                local elementFell = false
+                local elementFellOnce = false
                 while (i <= BOARD_ROW_NUMBER and self.elements[i + 1][j] == 0) do
+                    if (not elementFellOnce) then
+                        initialBoard[i][j] = 0
+                        elementFellOnce = true
+                    end
+
                     self.elements[i + 1][j] = self.elements[i][j]
                     self.elements[i][j] = 0
                     i = i + 1
-
-                    elementFell = true
                 end
 
-                if (elementFell) then
+                if (elementFellOnce) then
                     table.insert(
                         endPositions,
                         {
@@ -344,15 +346,18 @@ function Board:dropElements()
             end
         end
     end
+    local resultBoard = table.deepcopy(self.elements)
+    self.elements = initialBoard
 
     for i = 1, #self.droppingElements do
-        Timer.tween(1, self.droppingElements[i], endPositions[i], "linear")
+        Timer.tween(0.5, self.droppingElements[i], endPositions[i], "linear")
     end
 
     Timer.after(
-        1,
+        0.5,
         function()
             self.droppingElements = {}
+            self.elements = resultBoard
 
             self:regenRemovedElements()
         end
