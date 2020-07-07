@@ -416,8 +416,13 @@ function Board:dropElements()
         Timer.tween(0.5, self.droppingElements[i], endPositions[i], "linear")
     end
 
-    self.droppingElements = {}
-    self.elements = resultBoard
+    Timer.after(
+        0.5,
+        function()
+            self.droppingElements = {}
+            self.elements = resultBoard
 
-    self:regenRemovedElements()
+            self:regenRemovedElements()
+        end
+    )
 end
