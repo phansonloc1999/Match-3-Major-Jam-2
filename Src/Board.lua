@@ -55,6 +55,8 @@ function Board:init()
     self.swappingElement1, self.swappingElement2 = nil, nil ---@type Element
 
     self.droppingElements = {} ---@type Element[]
+
+    self:removeMatches()
 end
 
 function Board:draw()
@@ -203,7 +205,7 @@ function Board:checkRowForMatches(row)
     local matches = {}
     local first, last
     for column = 1, BOARD_COLUMN_NUMBER do
-        if (self.elements[row][column] == self.elements[row][column + 1]) then
+        if (self.elements[row][column] == self.elements[row][column + 1] and self.elements[row][column] ~= 0) then
             if (first == nil) then
                 first = column
             end
@@ -223,7 +225,7 @@ function Board:checkColumnForMatches(column)
     local matches = {}
     local first, last
     for row = 1, BOARD_ROW_NUMBER do
-        if (self.elements[row][column] == self.elements[row + 1][column]) then
+        if (self.elements[row][column] == self.elements[row + 1][column] and self.elements[row][column] ~= 0) then
             if (first == nil) then
                 first = row
             end
@@ -310,13 +312,13 @@ function Board:processMatches(row1, column1, row2, column2)
 
                 self.swappingElement1, self.swappingElement2 = nil, nil
 
-                self:dropElements()
+                self:dropElementsAfterMatching()
             end
         )
     end
 end
 
-function Board:regenRemovedElements(row1, column1, row2, column2)
+function Board:genAndDropNewElements(row1, column1, row2, column2)
     local initBoard = table.deepcopy(self.elements)
     local endPositions = {}
     self.droppingElements = {}
@@ -369,7 +371,7 @@ function Board:regenRemovedElements(row1, column1, row2, column2)
     )
 end
 
-function Board:dropElements()
+function Board:dropElementsAfterMatching()
     local endPositions = {}
 
     local initialBoard = table.deepcopy(self.elements)
@@ -422,7 +424,47 @@ function Board:dropElements()
             self.droppingElements = {}
             self.elements = resultBoard
 
-            self:regenRemovedElements()
+            self:genAndDropNewElements()
         end
     )
+end
+
+function Board:removeMatches()
+    local matchCount
+
+    repeat
+        local rowMatches = {}
+        local columnMatches = {}
+        matchCount = 0
+
+        for i = 1, BOARD_ROW_NUMBER do
+            table.insert(rowMatches, i, self:checkRowForMatches(i))
+            if #rowMatches[i] > 0 then
+                matchCount = matchCount + 1
+            end
+        end
+        for i = 1, BOARD_COLUMN_NUMBER do
+            table.insert(columnMatches, i, self:checkColumnForMatches(i))
+            if #columnMatches[i] > 0 then
+                matchCount = matchCount + 1
+            end
+        end
+
+        if (matchCount > 0) then
+            for i, value in pairs(rowMatches) do
+                for j = 1, #rowMatches[i] do
+                    for k = rowMatches[i][j].first, rowMatches[i][j].last do
+                        self.elements[i][k] = math.random(NUM_OF_ELEMENT_TYPE)
+                    end
+                end
+            end
+            for i, value in pairs(columnMatches) do
+                for j = 1, #columnMatches[i] do
+                    for k = columnMatches[i][j].first, columnMatches[i][j].last do
+                        self.elements[k][i] = math.random(NUM_OF_ELEMENT_TYPE)
+                    end
+                end
+            end
+        end
+    until matchCount == 0
 end
