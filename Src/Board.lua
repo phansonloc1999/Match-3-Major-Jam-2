@@ -25,11 +25,7 @@ function Board:init()
     for i = 1, BOARD_ROW_NUMBER do
         self.elements[i] = {}
         for j = 1, BOARD_COLUMN_NUMBER do
-            if (i == 1 and j == 1) then
-                self.elements[i][j] = 2
-            else
-                table.insert(self.elements[i], math.random(NUM_OF_ELEMENT_TYPE))
-            end
+            table.insert(self.elements[i], math.random(NUM_OF_ELEMENT_TYPE))
         end
     end
 
@@ -113,6 +109,20 @@ function Board:draw()
 
     for i = 1, #self.droppingElements do
         self.droppingElements[i]:draw()
+    end
+
+    if (self.prevSelectedElementPos) then
+        love.graphics.setLineWidth(10)
+        love.graphics.rectangle(
+            "line",
+            BOARD_X + (self.prevSelectedElementPos.column - 1) * CELL_WIDTH + 10,
+            BOARD_Y + (self.prevSelectedElementPos.row - 1) * CELL_HEIGHT + 10,
+            CELL_WIDTH - 20,
+            CELL_HEIGHT - 20,
+            4,
+            4
+        )
+        love.graphics.setLineWidth(1)
     end
 
     love.graphics.setColor(1, 1, 1)
@@ -280,6 +290,8 @@ function Board:processMatches(row1, column1, row2, column2)
                     self.elements[row2][column2] = temp1
 
                     self.swappingElement1, self.swappingElement2 = nil, nil
+
+                    self:regenBoard()
                 end
             )
             Timer.tween(
@@ -467,4 +479,13 @@ function Board:removeMatches()
             end
         end
     until matchCount == 0
+end
+
+function Board:regenBoard()
+    for i = 1, BOARD_ROW_NUMBER do
+        self.elements[i] = {}
+        for j = 1, BOARD_COLUMN_NUMBER do
+            table.insert(self.elements[i], math.random(NUM_OF_ELEMENT_TYPE))
+        end
+    end
 end
