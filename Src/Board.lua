@@ -291,7 +291,10 @@ function Board:processMatches(row1, column1, row2, column2)
 
                     self.swappingElement1, self.swappingElement2 = nil, nil
 
-                    self:regenBoard()
+                    if (not self:hasPotentialMatches()) then
+                        self:regenBoard()
+                        self:removeMatches()
+                    end
                 end
             )
             Timer.tween(
@@ -488,4 +491,57 @@ function Board:regenBoard()
             table.insert(self.elements[i], math.random(NUM_OF_ELEMENT_TYPE))
         end
     end
+end
+
+function Board:hasPotentialMatches()
+    for row = 1, BOARD_ROW_NUMBER do
+        for column = 1, BOARD_COLUMN_NUMBER do
+            if
+                (self:getElement(row, column) == self:getElement(row + 2, column) and
+                    self:getElement(row + 2, column) ~= nil) and
+                    (self:getElement(row, column) == self:getElement(row + 1, column - 1) or
+                        self:getElement(row, column) == self:getElement(row + 1, column + 1))
+             then
+                return true
+            end
+
+            if
+                (self:getElement(row, column) == self:getElement(row, column + 2) and
+                    self:getElement(row, column + 2) ~= nil) and
+                    (self:getElement(row, column) == self:getElement(row - 1, column + 1) or
+                        self:getElement(row, column) == self:getElement(row + 1, column + 1))
+             then
+                return true
+            end
+
+            if
+                (self:getElement(row, column) == self:getElement(row, column + 1) and
+                    self:getElement(row, column + 1) ~= nil) and
+                    (self:getElement(row, column - 2) == self:getElement(row, column) or
+                        self:getElement(row, column + 3) == self:getElement(row, column) or
+                        self:getElement(row + 1, column - 1) == self:getElement(row, column) or
+                        self:getElement(row - 1, column - 1) == self:getElement(row, column) or
+                        self:getElement(row + 1, column + 2) == self:getElement(row, column) or
+                        self:getElement(row - 1, column + 2) == self:getElement(row, column))
+             then
+                return true
+            end
+
+            if
+                self:getElement(row, column) == self:getElement(row + 1, column) and
+                    (self:getElement(row, column) == self:getElement(row + 3, column) or
+                        self:getElement(row, column) == self:getElement(row - 2, column))
+             then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function Board:getElement(row, column)
+    if (self.elements[row]) then
+        return self.elements[row][column]
+    end
+    return nil
 end
