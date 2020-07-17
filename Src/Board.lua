@@ -125,6 +125,7 @@ function Board:draw()
         love.graphics.setLineWidth(1)
     end
 
+    love.graphics.setStencilTest()
     love.graphics.setColor(1, 1, 1)
 end
 
