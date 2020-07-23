@@ -19,7 +19,8 @@ function Enemy:init(x, y)
 end
 
 function Enemy:draw()
-    self.collisionBox:draw()
+    -- self.collisionBox:draw()
+
     self.currentAnimation:draw(SPRITESHEET, self.x, self.y, 0, 4, 4)
 
     self.stateStack:getActiveState():draw()

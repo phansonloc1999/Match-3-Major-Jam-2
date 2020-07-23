@@ -6,8 +6,6 @@ function PlayerBattleState:init(player)
 end
 
 function PlayerBattleState:draw()
-    self.player.collisionBox:draw()
-    self.player.currentAnimation:draw(SPRITESHEET, self.player.x, self.player.y, 0, 6, 6)
 end
 
 function PlayerBattleState:update(dt)

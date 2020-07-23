@@ -19,6 +19,10 @@ function Player:init(x, y)
 end
 
 function Player:draw()
+    -- self.collisionBox:draw()
+
+    self.currentAnimation:draw(SPRITESHEET, self.x, self.y, 0, 6, 6)
+
     self.stateStack:getActiveState():draw()
 end
 

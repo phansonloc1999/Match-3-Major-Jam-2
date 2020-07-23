@@ -12,6 +12,8 @@ function love.load()
     board = Board()
 
     topScreen = TopScreen()
+
+    dmgPopupMan = DamagePopupManager()
 end
 
 function love.draw()
@@ -22,6 +24,8 @@ function love.draw()
     love.graphics.setColor(0, 1, 0)
     love.graphics.print("FPS: " .. love.timer.getFPS())
     love.graphics.setColor(1, 1, 1)
+
+    dmgPopupMan:draw()
 end
 
 function love.update(dt)
@@ -32,6 +36,8 @@ function love.update(dt)
     board:update(dt)
 
     topScreen:update(dt)
+
+    dmgPopupMan:update(dt)
 
     love.mouse.buttonsPressed = {}
 end

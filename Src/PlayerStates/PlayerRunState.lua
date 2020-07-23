@@ -8,8 +8,6 @@ function PlayerRunState:init(player)
 end
 
 function PlayerRunState:draw()
-    self.player.collisionBox:draw()
-    self.player.currentAnimation:draw(SPRITESHEET, self.player.x, self.player.y, 0, 6, 6)
 end
 
 ---@param topScreen TopScreen
