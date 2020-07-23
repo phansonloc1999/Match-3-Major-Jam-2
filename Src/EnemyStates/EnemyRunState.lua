@@ -8,8 +8,7 @@ end
 function EnemyRunState:draw()
 end
 
----@param topScreen TopScreen
-function EnemyRunState:update(dt, topScreen)
+function EnemyRunState:update(dt, params)
     self.enemy.x = self.enemy.x - 100 * dt
     if (self.enemy.x < -32) then
         self.enemy.x = WINDOW_WIDTH
@@ -17,7 +16,7 @@ function EnemyRunState:update(dt, topScreen)
 
     self.enemy.collisionBox:updatePos(self.enemy.x, self.enemy.y)
 
-    if (self.enemy.collisionBox:collidesWithOther(topScreen.player.collisionBox)) then
+    if (self.enemy.collisionBox:collidesWithOther(params.topScreen.player.collisionBox)) then
         self.enemy.stateStack:pop()
         self.enemy.stateStack:push(EnemyBattleState(self.enemy))
     end

@@ -26,6 +26,6 @@ function Player:draw()
     self.stateStack:getActiveState():draw()
 end
 
-function Player:update(dt, topScreen)
-    self.stateStack:getActiveState():update(dt, topScreen)
+function Player:update(dt, params)
+    self.stateStack:getActiveState():update(dt, params)
 end

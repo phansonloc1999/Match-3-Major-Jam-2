@@ -12,6 +12,6 @@ function TopScreen:draw()
 end
 
 function TopScreen:update(dt)
-    self.player:update(dt, self)
-    self.enemy:update(dt, self)
+    self.player:update(dt, {topScreen = self})
+    self.enemy:update(dt, {topScreen = self})
 end

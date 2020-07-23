@@ -26,8 +26,8 @@ function Enemy:draw()
     self.stateStack:getActiveState():draw()
 end
 
-function Enemy:update(dt, topScreen)
+function Enemy:update(dt, params)
     self.currentAnimation:update(dt)
 
-    self.stateStack:getActiveState():update(dt, topScreen)
+    self.stateStack:getActiveState():update(dt, params)
 end
